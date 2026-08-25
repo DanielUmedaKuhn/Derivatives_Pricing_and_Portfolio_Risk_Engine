@@ -1,9 +1,0 @@
-# Pastas de IDE e configurações locais
-.vscode/
-
-# Arquivos compilados e binários
-*.o
-*.out
-quant_engine
-check_version
-main
