@@ -2,6 +2,7 @@
 
 #include <string>
 #include <cstdint>
+#include <vector>
 
 enum class OptionType : uint8_t {
     Call, 
@@ -35,9 +36,24 @@ struct PortfolioGreeks {
     PortfolioGreeks& operator+=(const PortfolioGreeks& rhs) noexcept {
         delta += rhs.delta;
         gamma += rhs.gamma; 
-        vega += rhs.vega;
+        vega  += rhs.vega;
         theta += rhs.theta;
         
         return *this;
     }
+};
+
+struct VolatilitySurface {
+    size_t eixoS;
+    size_t eixoSigma;
+    double minSpot;
+    double maxSpot;
+    double minVol;
+    double maxVol;
+};
+
+struct StressMatrixResult {
+    std::vector<double> spot;
+    std::vector<double> vola;
+    std::vector<std::vector<double>> pnlValues;
 };

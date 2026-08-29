@@ -1,6 +1,7 @@
 #include "Portfolio.hpp"
 #include "BinomialTree.hpp"
 #include <iostream>
+#include <iomanip>
 
 int main(){
     Portfolio portfolio;
@@ -42,6 +43,8 @@ int main(){
         .quantity = 100.0       //long 100 puts
     };
 
+    portfolio.addPosition(americanPut);
+
     double precoCRR = calculateCRRPrice(
         americanPut.type,
         americanPut.style,
@@ -53,7 +56,27 @@ int main(){
         200    //200 passos na árvore para maior precisão
     );
 
-    std::cout << "\nPreço da Put Americana (CRR): R$ " << precoCRR << "\n";
+    std::cout << "\nPreço da Put Americana (CRR): R$ " << precoCRR << "\n\n";
+
+    VolatilitySurface config {
+        .eixoS = 10,
+        .eixoSigma = 10,
+        .minSpot = -0.40,
+        .maxSpot = 0.40,
+        .minVol = 0.0,
+        .maxVol = 0.5
+    };
+
+    StressMatrixResult stressMatrix = portfolio.generateStressMatrix(config);
+
+    for (int i = 0; i < stressMatrix.spot.size(); ++i){
+        for (int j = 0; j < stressMatrix.vola.size(); ++j){
+            //setprecision: 2 casas decimais
+            //setw: 10 casa para cada número
+            std::cout << std::fixed << std::setprecision(2) << std::setw(10) << stressMatrix.pnlValues[i][j] << " ";    //setprecision: 2 casas decimais
+        }
+        std::cout << "\n";
+    }
 
     return 0;
 }
