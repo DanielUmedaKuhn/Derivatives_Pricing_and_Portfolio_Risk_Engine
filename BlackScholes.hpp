@@ -43,9 +43,8 @@
     }
 
     if (T <= 0.0){   //opção expirada
-        return (type == OptionType::Call) ? std::max(S - K, 0.0) : std::max(K - S, 0.0);    /*se call, preço = max(ação - strike, 0)
-                                                                                              se put, preço = max(strike - ação, 0)
-                                                                                              */
+        //se call, preço = max(ação - strike, 0). Se put, preço = max(strike - ação, 0)
+        return (type == OptionType::Call) ? std::max(S - K, 0.0) : std::max(K - S, 0.0);  
     }
 
     const double d1 = (std::log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * std::sqrt(T));

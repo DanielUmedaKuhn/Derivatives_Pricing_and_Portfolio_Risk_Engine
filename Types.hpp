@@ -44,16 +44,22 @@ struct PortfolioGreeks {
 };
 
 struct VolatilitySurface {
-    size_t eixoS;
-    size_t eixoSigma;
+    std::size_t eixoS;
+    std::size_t eixoSigma;
     double minSpot;
     double maxSpot;
-    double minVol;
-    double maxVol;
+    double minVola;
+    double maxVola;
 };
 
 struct StressMatrixResult {
     std::vector<double> spot;
     std::vector<double> vola;
     std::vector<std::vector<double>> pnlValues;
+};
+
+struct CRRResult {
+    double price;
+    double delta;
+    double gamma;
 };

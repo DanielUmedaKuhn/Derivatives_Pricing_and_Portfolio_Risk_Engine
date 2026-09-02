@@ -11,16 +11,21 @@ PortfolioGreeks Portfolio::calculateTotalGreeks() const noexcept {
             
     //agregação linear das opções na carteira    
     for (const auto& pos : position){       
+        if (pos.style == ExerciseStyle::European){
             //cálculo das gregas unitárias (1 contrato/order)
-            PortfolioGreeks unitGreeks =  calculateEuropeanGreeks(pos.type, pos.S, pos.K, pos.T, pos.r, pos.sigma);
+            PortfolioGreeks unitGreeks = calculateEuropeanGreeks(pos.type, pos.S, pos.K, pos.T, pos.r, pos.sigma);
 
             total.delta += unitGreeks.delta * pos.quantity;
             total.gamma += unitGreeks.gamma * pos.quantity;
             total.vega  += unitGreeks.vega  * pos.quantity;
             total.theta += unitGreeks.theta * pos.quantity;
         
+        } else {    //opção American
+            CRRResult unitGreeks = calculateCRRPrice(pos.type, pos.style, pos.S, pos.K, pos.T, pos.r, pos.sigma);
+            total.delta += unitGreeks.delta * pos.quantity;
+            total.gamma += unitGreeks.gamma * pos.quantity;
         }
-
+    }
     return total;
 }
 
@@ -40,9 +45,9 @@ PortfolioGreeks Portfolio::calculateTotalGreeks() const noexcept {
             v0 += vOption;
             v1 += calculateBlackScholesPrice(pos.type, sNovo, pos.K, pos.T, pos.r, sigmaNovo) * pos.quantity;
         } else {
-            vOption = calculateCRRPrice(pos.type, pos.style, pos.S, pos.K, pos.T, pos.r, pos.sigma) * pos.quantity;
+            vOption = calculateCRRPrice(pos.type, pos.style, pos.S, pos.K, pos.T, pos.r, pos.sigma).price * pos.quantity;
             v0 += vOption;
-            v1 += calculateCRRPrice(pos.type, pos.style, sNovo, pos.K, pos.T, pos.r, sigmaNovo) * pos.quantity;
+            v1 += calculateCRRPrice(pos.type, pos.style, sNovo, pos.K, pos.T, pos.r, sigmaNovo).price * pos.quantity;
         }
     }
 
@@ -57,9 +62,9 @@ PortfolioGreeks Portfolio::calculateTotalGreeks() const noexcept {
 }
 
 [[nodiscard]] StressMatrixResult Portfolio::generateStressMatrix(const VolatilitySurface& config) const noexcept {
-    double spotStep = (config.maxSpot - config.minSpot) / (config.eixoS - 1.0);
-    double volaStep = (config.maxVol - config.minVol) / (config.eixoSigma - 1.0);
     StressMatrixResult stressMatrix{};
+    double spotStep = (config.maxSpot - config.minSpot) / (config.eixoS - 1.0);
+    double volaStep = (config.maxVola - config.minVola) / (config.eixoSigma - 1.0);
     stressMatrix.pnlValues.resize(config.eixoS, std::vector<double>(config.eixoSigma));
 
     for (int i = 0; i < config.eixoS; ++i){
@@ -67,7 +72,7 @@ PortfolioGreeks Portfolio::calculateTotalGreeks() const noexcept {
     }
 
     for (int i = 0; i < config.eixoSigma; ++i){
-        stressMatrix.vola.push_back(config.minVol + i * volaStep);      //preenche o eixo volatilidade
+        stressMatrix.vola.push_back(config.minVola + i * volaStep);      //preenche o eixo volatilidade
     }
 
     for (int i = 0; i < config.eixoS; ++i){

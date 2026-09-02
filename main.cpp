@@ -1,5 +1,6 @@
 #include "Portfolio.hpp"
 #include "BinomialTree.hpp"
+#include "BlackScholes.hpp"
 #include <iostream>
 #include <iomanip>
 
@@ -45,7 +46,7 @@ int main(){
 
     portfolio.addPosition(americanPut);
 
-    double precoCRR = calculateCRRPrice(
+    CRRResult americanPutResult = calculateCRRPrice(
         americanPut.type,
         americanPut.style,
         americanPut.S,
@@ -56,27 +57,44 @@ int main(){
         200    //200 passos na árvore para maior precisão
     );
 
-    std::cout << "\nPreço da Put Americana (CRR): R$ " << precoCRR << "\n\n";
+    std::cout << "Preço da Put Americana: " << americanPutResult.price << "\n";
+    std::cout << "Delta da Put Americana: " << americanPutResult.delta << "\n";
+    std::cout << "Gamma da Put Americana: " << americanPutResult.gamma << "\n\n";
 
     VolatilitySurface config {
         .eixoS = 10,
         .eixoSigma = 10,
         .minSpot = -0.40,
         .maxSpot = 0.40,
-        .minVol = 0.0,
-        .maxVol = 0.5
+        .minVola = 0.0,
+        .maxVola = 0.5
     };
 
     StressMatrixResult stressMatrix = portfolio.generateStressMatrix(config);
 
     for (int i = 0; i < stressMatrix.spot.size(); ++i){
         for (int j = 0; j < stressMatrix.vola.size(); ++j){
-            //setprecision: 2 casas decimais
-            //setw: 10 casa para cada número
-            std::cout << std::fixed << std::setprecision(2) << std::setw(10) << stressMatrix.pnlValues[i][j] << " ";    //setprecision: 2 casas decimais
+            std::cout << std::fixed << std::setprecision(2) << std::setw(10) << stressMatrix.pnlValues[i][j] << " ";
         }
         std::cout << "\n";
     }
 
+    //greeks via Black-Scholes
+    PortfolioGreeks bsGreeks = calculateEuropeanGreeks(
+        coveredCall.type, coveredCall.S, coveredCall.K, 
+        coveredCall.T, coveredCall.r, coveredCall.sigma
+    );
+
+    //greeks via árvore binomial 500 passos
+    CRRResult crrResult = calculateCRRPrice(
+        coveredCall.type, coveredCall.style, coveredCall.S, coveredCall.K, 
+        coveredCall.T, coveredCall.r, coveredCall.sigma, 500
+    );
+
+    std::cout << "\n Comparação BS e CRR: \n";
+    std::cout << "Delta Black-Scholes: " << bsGreeks.delta << "\n";
+    std::cout << "Delta CRR (500 passos): " << crrResult.delta << "\n\n";
+
     return 0;
 }
+

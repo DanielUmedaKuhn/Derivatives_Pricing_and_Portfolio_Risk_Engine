@@ -5,13 +5,14 @@
 #include <cmath>
 #include <algorithm>
 
-[[nodiscard]] inline double calculateCRRPrice(OptionType type, ExerciseStyle style, double S, double K, double T, double r, double sigma, std::size_t steps = 100) noexcept {
+
+[[nodiscard]] inline CRRResult calculateCRRPrice(OptionType type, ExerciseStyle style, double S, double K, double T, double r, double sigma, std::size_t steps = 100) noexcept {
     if (S <= 0.0 || K <= 0.0 || sigma <= 0.0) {
-        return 0.0;
+        return {0.0, 0.0, 0.0};
     }
 
     if (T <= 0.0) {
-        return (type == OptionType::Call) ? std::max(S - K, 0.0) : std::max(K - S, 0.0);
+        return {(type == OptionType::Call) ? std::max(S - K, 0.0) : std::max(K - S, 0.0), 0.0, 0.0};
     }
 
     double dT = T / steps;
@@ -21,6 +22,12 @@
     double discount = std::exp(-r * dT);
 
     std::vector<double> values(steps + 1);
+    double fu = 0.0;
+    double fd = 0.0;
+    
+    double fuu = 0.0;
+    double fud = 0.0;
+    double fdd = 0.0;
 
     for (std::size_t i = 0; i<= steps; ++i){
         double ST = S * std::pow(u, i) * std::pow(d, steps - i);       //preço da ação no vencimento
@@ -41,8 +48,27 @@
                 values[j] = continuationValue;
             }
         }
-    }
-    
 
-    return values[0];       //prêmio da opção hoje (t = 0) estará no primeiro elemento
+        if (i == 2){
+            fdd = values[0];
+            fud = values[1];
+            fuu = values[2];
+        }
+
+        if (i == 1){
+            fd = values[0];
+            fu = values[1];
+        }
+
+    }
+
+    double Su = S * u;
+    double Sd = S * d;
+    double delta = (fu - fd) / (Su - Sd);
+
+    double deltaUp = (fuu - fud) / (S * u * u - S);
+    double deltaDown = (fud - fdd) / (S - S * d * d);
+    double gamma = (deltaUp - deltaDown) / (Su - Sd);
+    
+    return {values[0], delta, gamma};       //prêmio da opção hoje (t = 0) estará no primeiro elemento
 }
