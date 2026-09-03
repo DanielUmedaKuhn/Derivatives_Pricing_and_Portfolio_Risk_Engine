@@ -59,7 +59,9 @@ int main(){
 
     std::cout << "Preço da Put Americana: " << americanPutResult.price << "\n";
     std::cout << "Delta da Put Americana: " << americanPutResult.delta << "\n";
-    std::cout << "Gamma da Put Americana: " << americanPutResult.gamma << "\n\n";
+    std::cout << "Gamma da Put Americana: " << americanPutResult.gamma << "\n";
+    std::cout << "Theta da Put Americana: " << americanPutResult.theta << "\n";
+    std::cout << "Vega da Put Americana: "  << americanPutResult.vega  << "\n\n";
 
     VolatilitySurface config {
         .eixoS = 10,

@@ -24,6 +24,8 @@ PortfolioGreeks Portfolio::calculateTotalGreeks() const noexcept {
             CRRResult unitGreeks = calculateCRRPrice(pos.type, pos.style, pos.S, pos.K, pos.T, pos.r, pos.sigma);
             total.delta += unitGreeks.delta * pos.quantity;
             total.gamma += unitGreeks.gamma * pos.quantity;
+            total.theta += unitGreeks.theta * pos.quantity;
+            total.vega  += unitGreeks.vega  * pos.quantity;
         }
     }
     return total;

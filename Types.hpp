@@ -62,4 +62,6 @@ struct CRRResult {
     double price;
     double delta;
     double gamma;
+    double theta;
+    double vega;
 };

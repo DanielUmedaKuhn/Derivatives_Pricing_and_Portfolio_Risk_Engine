@@ -49,17 +49,16 @@
             }
         }
 
-        if (i == 2){
+        if (i == 2){    //para cálculo de gamma, precisa-se do valor da opção em três nós: fuu, fud e fdd, que será no passo 2 da árvore (antes do passo 1)
             fdd = values[0];
             fud = values[1];
             fuu = values[2];
         }
 
-        if (i == 1){
+        if (i == 1){    //para cálculo de delta, precisa-se do valor da opção em dois nos: fu e fd, que será no passo 1 da árvore (logo antes do passo atual)
             fd = values[0];
             fu = values[1];
         }
-
     }
 
     double Su = S * u;
@@ -69,6 +68,39 @@
     double deltaUp = (fuu - fud) / (S * u * u - S);
     double deltaDown = (fud - fdd) / (S - S * d * d);
     double gamma = (deltaUp - deltaDown) / (Su - Sd);
-    
-    return {values[0], delta, gamma};       //prêmio da opção hoje (t = 0) estará no primeiro elemento
+    double theta = (fud - values[0])/(2 * dT);
+
+    //início da árvore de volatilidade
+    double dSigma = 0.01;
+    double sigmaBumped = sigma + dSigma;
+
+    double uBumped = std::exp(sigmaBumped * std::sqrt(dT));
+    double dBumped = 1.0 / uBumped;
+    double pBumped = (std::exp(r * dT) - dBumped) / (uBumped - dBumped);
+
+    std::vector<double> valuesBumped(steps + 1);
+
+    //loop com valores de volatilidade atualizada
+    for (std::size_t i = 0; i<= steps; ++i){
+        double ST = S * std::pow(uBumped, i) * std::pow(dBumped, steps - i);      
+        valuesBumped[i] = (type == OptionType::Call ? std::max(ST - K, 0.0) : std::max(K - ST, 0.0));
+    }
+
+    //loop de backward induction com volatilidade atualizada
+    for (std::size_t i = steps; i-- > 0; ) {    
+        for (std::size_t j = 0; j <= i; ++j){   
+            double continuationValue = discount * (pBumped * valuesBumped[j + 1] + (1.0 - pBumped) * valuesBumped[j]);   
+            if (style == ExerciseStyle::American) {
+                double St = S * std::pow(uBumped, j) * std::pow(dBumped, i - j);   
+                double instrinsicValue = (type == OptionType::Call ? std::max(St - K, 0.0) : std::max(K - St, 0.0));
+                valuesBumped[j] = std::max(continuationValue, instrinsicValue);
+            } else {
+                valuesBumped[j] = continuationValue;
+            }
+        }
+    }
+
+    double vega = (valuesBumped[0] - values[0]) / dSigma;   //sensibilidade do preço da opção à volatilidade  
+
+    return {values[0], delta, gamma, theta, vega};       //prêmio da opção hoje (t = 0) estará no primeiro elemento
 }
