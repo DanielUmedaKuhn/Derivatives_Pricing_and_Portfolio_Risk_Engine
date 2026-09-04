@@ -16,6 +16,7 @@ int main(){
         .K = 32.0,
         .T = 30.0 / 365.0,
         .r = 0.10,
+        .q = 0.002,     //2,4% de dividendos ao ano
         .sigma = 0.30,
         .quantity = -100.0      //short 100 calls
     };
@@ -40,6 +41,7 @@ int main(){
         .K = 60.0,
         .T = 60.0 / 365.0,
         .r = 0.10,
+        .q = 0.002,     //2,4% de dividendos ao ano
         .sigma = 0.35,
         .quantity = 100.0       //long 100 puts
     };
@@ -53,6 +55,7 @@ int main(){
         americanPut.K,
         americanPut.T,
         americanPut.r,
+        americanPut.q,
         americanPut.sigma,
         200    //200 passos na árvore para maior precisão
     );
@@ -90,7 +93,7 @@ int main(){
     //greeks via árvore binomial 500 passos
     CRRResult crrResult = calculateCRRPrice(
         coveredCall.type, coveredCall.style, coveredCall.S, coveredCall.K, 
-        coveredCall.T, coveredCall.r, coveredCall.sigma, 500
+        coveredCall.T, coveredCall.r, coveredCall.q, coveredCall.sigma, 500
     );
 
     std::cout << "\n Comparação BS e CRR: \n";

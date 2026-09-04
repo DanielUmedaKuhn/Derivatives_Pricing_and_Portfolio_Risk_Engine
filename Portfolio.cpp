@@ -21,7 +21,7 @@ PortfolioGreeks Portfolio::calculateTotalGreeks() const noexcept {
             total.theta += unitGreeks.theta * pos.quantity;
         
         } else {    //opção American
-            CRRResult unitGreeks = calculateCRRPrice(pos.type, pos.style, pos.S, pos.K, pos.T, pos.r, pos.sigma);
+            CRRResult unitGreeks = calculateCRRPrice(pos.type, pos.style, pos.S, pos.K, pos.T, pos.r, pos.q, pos.sigma);
             total.delta += unitGreeks.delta * pos.quantity;
             total.gamma += unitGreeks.gamma * pos.quantity;
             total.theta += unitGreeks.theta * pos.quantity;
@@ -43,13 +43,13 @@ PortfolioGreeks Portfolio::calculateTotalGreeks() const noexcept {
         double sNovo = pos.S * (1.0 + spotPctChange);
         double sigmaNovo = std::max(0.0001, (pos.sigma + volaAbsChange));
         if (ExerciseStyle::European == pos.style){
-            vOption = calculateBlackScholesPrice(pos.type, pos.S, pos.K, pos.T, pos.r, pos.sigma) * pos.quantity;
+            vOption = calculateBlackScholesPrice(pos.type, pos.S, pos.K, pos.T, pos.r, pos.q, pos.sigma) * pos.quantity;
             v0 += vOption;
-            v1 += calculateBlackScholesPrice(pos.type, sNovo, pos.K, pos.T, pos.r, sigmaNovo) * pos.quantity;
+            v1 += calculateBlackScholesPrice(pos.type, sNovo, pos.K, pos.T, pos.r, pos.q, sigmaNovo) * pos.quantity;
         } else {
-            vOption = calculateCRRPrice(pos.type, pos.style, pos.S, pos.K, pos.T, pos.r, pos.sigma).price * pos.quantity;
+            vOption = calculateCRRPrice(pos.type, pos.style, pos.S, pos.K, pos.T, pos.r, pos.q, pos.sigma).price * pos.quantity;
             v0 += vOption;
-            v1 += calculateCRRPrice(pos.type, pos.style, sNovo, pos.K, pos.T, pos.r, sigmaNovo).price * pos.quantity;
+            v1 += calculateCRRPrice(pos.type, pos.style, sNovo, pos.K, pos.T, pos.r, pos.q, sigmaNovo).price * pos.quantity;
         }
     }
 

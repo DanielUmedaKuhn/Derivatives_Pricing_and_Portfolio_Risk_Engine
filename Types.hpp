@@ -22,6 +22,7 @@ struct OptionPosition {
     double K;               //strike
     double T;               //tempo até vencimento (em anos)
     double r;               //taxa livre de risco
+    double q;               //dividendos da ação
     double sigma;           //volatilidade implícita
     double quantity;        //quantidade de ações ex: +100 = long, -100 = short
 };

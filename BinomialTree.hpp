@@ -6,7 +6,7 @@
 #include <algorithm>
 
 
-[[nodiscard]] inline CRRResult calculateCRRPrice(OptionType type, ExerciseStyle style, double S, double K, double T, double r, double sigma, std::size_t steps = 100) noexcept {
+[[nodiscard]] inline CRRResult calculateCRRPrice(OptionType type, ExerciseStyle style, double S, double K, double T, double r, double q, double sigma, std::size_t steps = 100) noexcept {
     if (S <= 0.0 || K <= 0.0 || sigma <= 0.0) {
         return {0.0, 0.0, 0.0};
     }
@@ -18,7 +18,7 @@
     double dT = T / steps;
     double u = std::exp(sigma * std::sqrt(dT));
     double d = 1.0 / u;
-    double p = (std::exp(r * dT) - d) / (u - d);    //probabilidade neutra ao risco
+    double p = (std::exp((r - q) * dT) - d) / (u - d);    //probabilidade neutra ao risco
     double discount = std::exp(-r * dT);
 
     std::vector<double> values(steps + 1);
@@ -76,7 +76,7 @@
 
     double uBumped = std::exp(sigmaBumped * std::sqrt(dT));
     double dBumped = 1.0 / uBumped;
-    double pBumped = (std::exp(r * dT) - dBumped) / (uBumped - dBumped);
+    double pBumped = (std::exp((r - q) * dT) - dBumped) / (uBumped - dBumped);
 
     std::vector<double> valuesBumped(steps + 1);
 
