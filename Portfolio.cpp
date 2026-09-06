@@ -13,7 +13,7 @@ PortfolioGreeks Portfolio::calculateTotalGreeks() const noexcept {
     for (const auto& pos : position){       
         if (pos.style == ExerciseStyle::European){
             //cálculo das gregas unitárias (1 contrato/order)
-            PortfolioGreeks unitGreeks = calculateEuropeanGreeks(pos.type, pos.S, pos.K, pos.T, pos.r, pos.sigma);
+            PortfolioGreeks unitGreeks = calculateEuropeanGreeks(pos.type, pos.S, pos.K, pos.T, pos.r, pos.q, pos.sigma);
 
             total.delta += unitGreeks.delta * pos.quantity;
             total.gamma += unitGreeks.gamma * pos.quantity;

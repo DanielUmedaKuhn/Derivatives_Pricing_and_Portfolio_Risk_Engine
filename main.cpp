@@ -4,68 +4,79 @@
 #include <iostream>
 #include <iomanip>
 
+OptionPosition readPositionFromTerminal(){
+    OptionPosition pos;
+    char typeChar, StyleChar;
+
+    std::cout << "Símbolo da Opção (Ex: PETR4_C32): ";
+    std::cin >> pos.symbol;
+
+    std::cout <<"Tipo (C = Call, P = Put): ";
+    std::cin >> typeChar;
+    pos.type = (std::toupper(typeChar) == 'C') ? OptionType::Call : OptionType::Put;
+
+    std::cout << "Estilo (E = Europeia, A = Americana): ";
+    std::cin >> StyleChar;
+    pos.style = (std::toupper(StyleChar) == 'E') ? ExerciseStyle::European : ExerciseStyle::American;
+
+    std::cout << "Preço do Ativo (S): ";
+    std::cin >> pos.S;
+    
+    std::cout << "Strike (K): ";
+    std::cin >> pos.K;
+
+    std::cout << "Tempo até Vencimento (T) em anos:  ";
+    std::cin >> pos.T;
+
+    std::cout << "Risk-Free-Rate (r): ";
+    std::cin >> pos.r;
+
+    std::cout << "Taxa de dividendos (q): ";
+    std::cin >> pos.q;
+
+    std::cout << "Volatilidade Implícita (sigma): ";
+    std::cin >> pos.sigma;
+
+    std::cout << "Quantidade (+ para Long, - para Short. Ex: +100 = Long 100, -100 = Short 100): ";
+    std::cin >> pos.quantity;
+
+    return pos;
+}
+
 int main(){
     Portfolio portfolio;
-    portfolio.setSpotShares(100.0);     //100 ações spot
+    double spotShares = 0.0;
 
-    OptionPosition coveredCall {
-        .symbol = "PETR4_C32",
-        .type = OptionType::Call,
-        .style = ExerciseStyle::European, 
-        .S = 30.0,
-        .K = 32.0,
-        .T = 30.0 / 365.0,
-        .r = 0.10,
-        .q = 0.002,     //2,4% de dividendos ao ano
-        .sigma = 0.30,
-        .quantity = -100.0      //short 100 calls
-    };
+    std::cout << "Quantidade de ações (Spot) presentes na carteira atualmente: ";
+    std::cin >> spotShares;
+    portfolio.setSpotShares(spotShares);
 
-    portfolio.addPosition(coveredCall);
+    char addMore = 'S';
+    while (std::toupper(addMore) == 'S'){
+        std::cout << "\n --- Adicionar Nova Opção --- \n";
+        OptionPosition newPos = readPositionFromTerminal();
+        portfolio.addPosition(newPos);
 
+        std::cout << "Deseja adcionar outra opção? (S/N): ";
+        std::cin >> addMore;
+    }
+
+    //relatório das gregas consolidadadas da carteira
     PortfolioGreeks greeks = portfolio.calculateTotalGreeks();
-    std::cout << "Delta: " << greeks.delta << "\n";
-    std::cout << "Gamma: " << greeks.gamma << "\n";
-    std::cout << "Vega: " << greeks.vega << "\n";
-    std::cout << "Theta: " << greeks.theta << "\n";
+    
+    std::cout << "\nGregas Consolidadas: \n";
+    std::cout << std::setw(12) << "Delta" 
+              << std::setw(12) << "Gamma"
+              << std::setw(12) << "Vega" 
+              << std::setw(12) << "Theta" << "\n";
 
-    double pnl = portfolio.calculatePnLStress(-0.10, 0.05);
-    std::cout << "P&L sob estresse (Spot -10%, Vol +5%)" << "\n";
-    std::cout << "Resultado: R$ " << pnl << '\n';
+    std::cout << std::fixed << std::setprecision(4)
+              << std::setw(12) << greeks.delta 
+              << std::setw(12) << greeks.gamma 
+              << std::setw(12) << greeks.vega 
+              << std::setw(12) << greeks.theta << "\n\n";
 
-    OptionPosition americanPut {
-        .symbol = "VALE3_P60",
-        .type = OptionType::Put,
-        .style = ExerciseStyle::American,
-        .S = 62.0,
-        .K = 60.0,
-        .T = 60.0 / 365.0,
-        .r = 0.10,
-        .q = 0.002,     //2,4% de dividendos ao ano
-        .sigma = 0.35,
-        .quantity = 100.0       //long 100 puts
-    };
-
-    portfolio.addPosition(americanPut);
-
-    CRRResult americanPutResult = calculateCRRPrice(
-        americanPut.type,
-        americanPut.style,
-        americanPut.S,
-        americanPut.K,
-        americanPut.T,
-        americanPut.r,
-        americanPut.q,
-        americanPut.sigma,
-        200    //200 passos na árvore para maior precisão
-    );
-
-    std::cout << "Preço da Put Americana: " << americanPutResult.price << "\n";
-    std::cout << "Delta da Put Americana: " << americanPutResult.delta << "\n";
-    std::cout << "Gamma da Put Americana: " << americanPutResult.gamma << "\n";
-    std::cout << "Theta da Put Americana: " << americanPutResult.theta << "\n";
-    std::cout << "Vega da Put Americana: "  << americanPutResult.vega  << "\n\n";
-
+    //configuração e geração da Stress Matrix
     VolatilitySurface config {
         .eixoS = 10,
         .eixoSigma = 10,
@@ -77,28 +88,24 @@ int main(){
 
     StressMatrixResult stressMatrix = portfolio.generateStressMatrix(config);
 
+    std::cout << "Heat map de P&L sob estresse (Spot/Volatilidade): \n\n";
+    std::cout << std::setw(10) << " ";
+
+    //eixo superior (volatilidade)
+    for (int i = 0; i < stressMatrix.vola.size(); ++i){
+        std::cout << std::fixed << std::setprecision(2) << std::setw(10) << stressMatrix.vola[i] << " ";
+    }
+    
+    std::cout << "\n";
+
+    //eixo lateral (spot) cruzado com volatilidade
     for (int i = 0; i < stressMatrix.spot.size(); ++i){
+        std::cout << std::fixed << std::setprecision(2) << std::setw(10) << stressMatrix.spot[i] << " ";
         for (int j = 0; j < stressMatrix.vola.size(); ++j){
             std::cout << std::fixed << std::setprecision(2) << std::setw(10) << stressMatrix.pnlValues[i][j] << " ";
         }
         std::cout << "\n";
     }
-
-    //greeks via Black-Scholes
-    PortfolioGreeks bsGreeks = calculateEuropeanGreeks(
-        coveredCall.type, coveredCall.S, coveredCall.K, 
-        coveredCall.T, coveredCall.r, coveredCall.sigma
-    );
-
-    //greeks via árvore binomial 500 passos
-    CRRResult crrResult = calculateCRRPrice(
-        coveredCall.type, coveredCall.style, coveredCall.S, coveredCall.K, 
-        coveredCall.T, coveredCall.r, coveredCall.q, coveredCall.sigma, 500
-    );
-
-    std::cout << "\n Comparação BS e CRR: \n";
-    std::cout << "Delta Black-Scholes: " << bsGreeks.delta << "\n";
-    std::cout << "Delta CRR (500 passos): " << crrResult.delta << "\n\n";
 
     return 0;
 }
