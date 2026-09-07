@@ -28,3 +28,6 @@ O projeto adota uma arquitetura modular orientada a objetos e separação de res
 ## Para Compilar e Executar:
 
 Possuir um compilador C++ (suporte a C++17 ou superior) instalado.
+
+---
+Autor: [Daniel Umeda Kuhn](https://github.com/DanielUmedaKuhn)
