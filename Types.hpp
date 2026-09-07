@@ -32,6 +32,7 @@ struct PortfolioGreeks {
     double gamma{0.0};
     double vega{0.0};
     double theta{0.0};
+    double rho{0.0};
 
     //operador de soma como membro da função
     PortfolioGreeks& operator+=(const PortfolioGreeks& rhs) noexcept {
@@ -39,6 +40,7 @@ struct PortfolioGreeks {
         gamma += rhs.gamma; 
         vega  += rhs.vega;
         theta += rhs.theta;
+        rho   += rhs.rho;
         
         return *this;
     }
@@ -65,4 +67,5 @@ struct CRRResult {
     double gamma;
     double theta;
     double vega;
+    double rho;
 };

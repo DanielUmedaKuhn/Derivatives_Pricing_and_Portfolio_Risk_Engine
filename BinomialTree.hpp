@@ -99,8 +99,38 @@
             }
         }
     }
-
+    
     double vega = (valuesBumped[0] - values[0]) / dSigma;   //sensibilidade do preço da opção à volatilidade  
+    
+    //início da árvore de taxa de juros
+    double dR = 0.0005;
+    double rBumped = r + dR;
+    double pBumpedR = (std::exp((rBumped - q) * dT) - d) / (u - d);
+    double discountBumpedR = std::exp(-rBumped * dT);
 
-    return {values[0], delta, gamma, theta, vega};       //prêmio da opção hoje (t = 0) estará no primeiro elemento
+    std::vector<double> valuesBumpedR(steps + 1);
+    
+    //loop com valores de risk-free-rate atualizado
+    for (std::size_t i = 0; i<= steps; ++i){
+        double ST = S * std::pow(u, i) * std::pow(d, steps - i);      
+        valuesBumpedR[i] = (type == OptionType::Call ? std::max(ST - K, 0.0) : std::max(K - ST, 0.0));
+    }
+
+    //loop de backward induction com risk-free-rate atualizado
+    for (std::size_t i = steps; i-- > 0; ) {    
+        for (std::size_t j = 0; j <= i; ++j){   
+            double continuationValue = discountBumpedR * (pBumpedR * valuesBumpedR[j + 1] + (1.0 - pBumpedR) * valuesBumpedR[j]);   
+            if (style == ExerciseStyle::American) {
+                double St = S * std::pow(u, j) * std::pow(d, i - j);   
+                double instrinsicValue = (type == OptionType::Call ? std::max(St - K, 0.0) : std::max(K - St, 0.0));
+                valuesBumpedR[j] = std::max(continuationValue, instrinsicValue);
+            } else {
+                valuesBumpedR[j] = continuationValue;
+            }
+        }
+    }
+
+    double rho = (valuesBumpedR[0] - values[0]) / dR;         //sensibilidade do preço da opção ao risk-free-rate
+
+    return {values[0], delta, gamma, theta, vega, rho};       //prêmio da opção hoje (t = 0) estará no primeiro elemento
 }

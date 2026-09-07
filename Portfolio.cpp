@@ -19,6 +19,7 @@ PortfolioGreeks Portfolio::calculateTotalGreeks() const noexcept {
             total.gamma += unitGreeks.gamma * pos.quantity;
             total.vega  += unitGreeks.vega  * pos.quantity;
             total.theta += unitGreeks.theta * pos.quantity;
+            total.rho   += unitGreeks.rho   * pos.quantity;
         
         } else {    //opção American
             CRRResult unitGreeks = calculateCRRPrice(pos.type, pos.style, pos.S, pos.K, pos.T, pos.r, pos.q, pos.sigma);
@@ -26,6 +27,7 @@ PortfolioGreeks Portfolio::calculateTotalGreeks() const noexcept {
             total.gamma += unitGreeks.gamma * pos.quantity;
             total.theta += unitGreeks.theta * pos.quantity;
             total.vega  += unitGreeks.vega  * pos.quantity;
+            total.rho   += unitGreeks.rho   * pos.quantity;
         }
     }
     return total;

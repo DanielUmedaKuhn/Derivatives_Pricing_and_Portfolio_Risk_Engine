@@ -31,9 +31,11 @@
     if (type == OptionType::Call) {
         greeks.delta = exp_qT * cdf_d1;
         greeks.theta = -(S * exp_qT * pdf_d1 * sigma / (2.0 * std::sqrt(T))) + (q * S * exp_qT * cdf_d1)- (r * K * exp_rT * cdf_d2);
+        greeks.rho = K * T * exp_rT * cdf_d2;
     } else {
         greeks.delta = exp_qT * (cdf_d1 - 1.0);
         greeks.theta = -(S * exp_qT * pdf_d1 * sigma / (2.0 * std::sqrt(T))) - (q * S * exp_qT * (1.0 - cdf_d1)) + (r * K * exp_rT * cdf_minus_d2);
+        greeks.rho = - K * T * exp_rT * cdf_minus_d2;
     }
 
     return greeks;

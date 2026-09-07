@@ -68,13 +68,15 @@ int main(){
     std::cout << std::setw(12) << "Delta" 
               << std::setw(12) << "Gamma"
               << std::setw(12) << "Vega" 
-              << std::setw(12) << "Theta" << "\n";
+              << std::setw(12) << "Theta" 
+              << std::setw(12) << "Rho\n";
 
     std::cout << std::fixed << std::setprecision(4)
               << std::setw(12) << greeks.delta 
               << std::setw(12) << greeks.gamma 
               << std::setw(12) << greeks.vega 
-              << std::setw(12) << greeks.theta << "\n\n";
+              << std::setw(12) << greeks.theta 
+              << std::setw(12) << greeks.rho << "\n\n";
 
     //configuração e geração da Stress Matrix
     VolatilitySurface config {
