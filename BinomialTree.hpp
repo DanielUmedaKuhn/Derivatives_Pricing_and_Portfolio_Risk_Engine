@@ -63,12 +63,12 @@
 
     double Su = S * u;
     double Sd = S * d;
-    double delta = (fu - fd) / (Su - Sd);
+    double delta = (fu - fd) / (Su - Sd);       //sensibilidade do preço da opção ao preço da ação
 
     double deltaUp = (fuu - fud) / (S * u * u - S);
     double deltaDown = (fud - fdd) / (S - S * d * d);
-    double gamma = (deltaUp - deltaDown) / (Su - Sd);
-    double theta = (fud - values[0])/(2 * dT);
+    double gamma = (deltaUp - deltaDown) / (Su - Sd);    //sensiblidade do delta da opção à variação no preço da ação
+    double theta = ((fud - values[0]) / (2 * dT)) / 365.0;      //sensibilidade do preço da opção ao tempo (por dia)
 
     //início da árvore de volatilidade
     double dSigma = 0.01;
@@ -100,10 +100,10 @@
         }
     }
     
-    double vega = (valuesBumped[0] - values[0]) / dSigma;   //sensibilidade do preço da opção à volatilidade  
+    double vega = ((valuesBumped[0] - values[0]) / dSigma) / 100.0;   //sensibilidade do preço da opção à volatilidade (em %)
     
     //início da árvore de taxa de juros
-    double dR = 0.0005;
+    double dR = 0.0001;     //valor de choque na taxa de juros de 1 basis point
     double rBumped = r + dR;
     double pBumpedR = (std::exp((rBumped - q) * dT) - d) / (u - d);
     double discountBumpedR = std::exp(-rBumped * dT);
@@ -130,7 +130,7 @@
         }
     }
 
-    double rho = (valuesBumpedR[0] - values[0]) / dR;         //sensibilidade do preço da opção ao risk-free-rate
+    double rho = ((valuesBumpedR[0] - values[0]) / dR) / 100.0;    //sensibilidade do preço da opção ao risk-free-rate (em %)
 
     return {values[0], delta, gamma, theta, vega, rho};       //prêmio da opção hoje (t = 0) estará no primeiro elemento
 }

@@ -3,62 +3,83 @@
 #include "BlackScholes.hpp"
 #include <iostream>
 #include <iomanip>
+#include <sstream>
+
+std::string readString(const std::string&prompt){
+    std::string line; 
+    while (true){
+        std::cout << prompt;
+        std::getline(std::cin, line);
+        if (!line.empty()){
+            return line;
+        }
+    }
+}
+
+double readDouble (const std::string& prompt){
+    std::string line;
+    double value;
+    while (true){
+        std::cout << prompt;
+        std::getline(std::cin, line);
+        std::stringstream ss (line);
+        if (ss >> value){
+            return value;
+        }
+        std::cout << "[ERRO] Entrada inválida. Digite um número.\n";
+        }
+}
+
+char readChar (const std::string& prompt, char valid1, char valid2){
+    std::string line;
+    while (true){
+        std::cout << prompt; 
+        std:getline(std::cin, line);
+        if(!line.empty()){
+            char value = std::toupper(line[0]);
+            if (value == valid1 || value == valid2){
+                return value;
+            }
+        }
+        std::cout << "[ERRO] Entrada inválida. Digite " << valid1 << " ou " << valid2 << ".\n";
+    }
+}
 
 OptionPosition readPositionFromTerminal(){
     OptionPosition pos;
-    char typeChar, StyleChar;
 
-    std::cout << "Símbolo da Opção (Ex: PETR4_C32): ";
-    std::cin >> pos.symbol;
+    pos.symbol = readString("Símbolo da Opção (Ex: PETR4_C32): ");
 
-    std::cout <<"Tipo (C = Call, P = Put): ";
-    std::cin >> typeChar;
+    char typeChar = readChar("Tipo (C = Call, P = Put): ", 'C', 'P');
     pos.type = (std::toupper(typeChar) == 'C') ? OptionType::Call : OptionType::Put;
 
-    std::cout << "Estilo (E = Europeia, A = Americana): ";
-    std::cin >> StyleChar;
-    pos.style = (std::toupper(StyleChar) == 'E') ? ExerciseStyle::European : ExerciseStyle::American;
+    char styleChar = readChar("Estilo (E = Europeia, A = Americana): ", 'E', 'A');
+    pos.style = (std::toupper(styleChar) == 'E') ? ExerciseStyle::European : ExerciseStyle::American;
 
-    std::cout << "Preço do Ativo (S): ";
-    std::cin >> pos.S;
-    
-    std::cout << "Strike (K): ";
-    std::cin >> pos.K;
-
-    std::cout << "Tempo até Vencimento (T) em anos:  ";
-    std::cin >> pos.T;
-
-    std::cout << "Risk-Free-Rate (r): ";
-    std::cin >> pos.r;
-
-    std::cout << "Taxa de dividendos (q): ";
-    std::cin >> pos.q;
-
-    std::cout << "Volatilidade Implícita (sigma): ";
-    std::cin >> pos.sigma;
-
-    std::cout << "Quantidade (+ para Long, - para Short. Ex: +100 = Long 100, -100 = Short 100): ";
-    std::cin >> pos.quantity;
+    pos.S = readDouble("Preço do Ativo (S): ");
+    pos.K = readDouble("Strike (K): ");
+    pos.T = readDouble("Tempo até Vencimento (T) em anos: ");
+    pos.r = readDouble("Risk-Free-Rate (r): ");
+    pos.q = readDouble("Taxa de dividendos (q): ");
+    pos.sigma = readDouble("Volatilidade Implícita (sigma): ");
+    pos.quantity = readDouble ("Quantidade (+ para Long, - para Short. Ex: +100 = Long 100, -100 = Short 100): ");
 
     return pos;
 }
 
 int main(){
     Portfolio portfolio;
-    double spotShares = 0.0;
 
-    std::cout << "Quantidade de ações (Spot) presentes na carteira atualmente: ";
-    std::cin >> spotShares;
+    double spotShares = readDouble("Quantidade de ações (Spot) presentes na carteira atualmente: ");
     portfolio.setSpotShares(spotShares);
 
-    char addMore = 'S';
+    char addMore = 'S';     //flag para perguntar se deseja adicionar mais opções
     while (std::toupper(addMore) == 'S'){
         std::cout << "\n --- Adicionar Nova Opção --- \n";
         OptionPosition newPos = readPositionFromTerminal();
         portfolio.addPosition(newPos);
 
-        std::cout << "Deseja adcionar outra opção? (S/N): ";
-        std::cin >> addMore;
+        addMore = readChar("Deseja adicionar outra opção? (S/N): ", 'S', 'N');
     }
 
     //relatório das gregas consolidadadas da carteira
