@@ -2,28 +2,30 @@
 
 #include "Types.hpp"
 #include <vector>
+#include <string>
+#include <unordered_map>
 
 class Portfolio{
     private:
         std::vector<OptionPosition> position;
-        double spotShares{0.0};         //quantidade de ações à vista (spot)
-        double underlyingSpot{0.0};     //preço spot de referência para o ativo
+        std::unordered_map<std::string, double> spotShares;         //quantidade de ações à vista (spot)
+        std::unordered_map<std::string, double> underlyingSpot;     //preço spot de referência para o ativo
     
     public:
         void addPosition(const OptionPosition& pos){
             position.push_back(pos);
-            if (underlyingSpot == 0.0){   //verifica se o preço spot de referência foi informado
-                underlyingSpot = pos.S;
+            if (underlyingSpot[pos.symbol] == 0.0){   //verifica se o preço spot de referência foi informado
+                underlyingSpot[pos.symbol] = pos.S;
             }
         }
-        void setSpotShares(double shares, double currentSpot = 0.0) noexcept{
-            spotShares = shares;
+        void setSpotShares(std::string symbol, double shares, double currentSpot = 0.0) noexcept{
+            spotShares[symbol] = shares;
             if (currentSpot > 0.0){     // = se o preço atual foi informado:
-                underlyingSpot = currentSpot;
+                underlyingSpot[symbol] = currentSpot;
             }
         }
 
-        [[nodiscard]] PortfolioGreeks calculateTotalGreeks() const noexcept;
-        [[nodiscard]] double calculatePnLStress(double spotPctChange, double volAbsChange) const noexcept;        
-        [[nodiscard]] StressMatrixResult generateStressMatrix(const VolatilitySurface& config) const noexcept;
+        [[nodiscard]] std::unordered_map<std::string, PortfolioGreeks> calculateTotalGreeks() const noexcept;
+        [[nodiscard]] std::unordered_map<std::string, double> calculatePnLStress(double spotPctChange, double volAbsChange) const noexcept;        
+        [[nodiscard]] std::unordered_map<std::string, StressMatrixResult> generateStressMatrix(const VolatilitySurface& config) const noexcept;
 };

@@ -60,11 +60,11 @@
     const double cdf_minus_d2 = 1.0 - cdf_d2;
 
     if (type == OptionType::Call){
-        double precoCall = (S * std::exp(-q * T)) * cdf_d1 - K * std::exp(-r * T) * cdf_d2;
-        return precoCall;
+        double callPrice = (S * std::exp(-q * T)) * cdf_d1 - K * std::exp(-r * T) * cdf_d2;
+        return callPrice;
     } else {
-        double precoPut = K * std::exp(-r * T) * cdf_minus_d2 - (S * std::exp(-q * T)) * cdf_minus_d1;
-        return precoPut;
+        double putPrice = K * std::exp(-r * T) * cdf_minus_d2 - (S * std::exp(-q * T)) * cdf_minus_d1;
+        return putPrice;
     }
 
 }
