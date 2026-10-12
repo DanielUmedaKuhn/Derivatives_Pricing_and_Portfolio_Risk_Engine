@@ -115,7 +115,7 @@ int main(){
     std::unordered_map<std::string, StressMatrixResult> groupedMatrices = portfolio.generateStressMatrix(config);
 
     for (const auto& pair : groupedMatrices) {
-        std::cout << "Heat map de P&L sob estresse (Spot/Volatilidade) [" << pair.first << "]: \n\n";
+        std::cout << "Heat map de P&L sob estresse (Volatilidade (eixo X)/ Spot (eixo Y)) [" << pair.first << "]: \n\n";
         std::cout << std::setw(10) << " ";
 
         const auto& stressMatrix = pair.second;
