@@ -103,10 +103,10 @@ int main(){
     }
 
     VolatilitySurface config {
-        .eixoS = 10,
-        .eixoSigma = 10,
-        .minSpot = -0.40,
-        .maxSpot = 0.40,
+        .eixoS = 11,
+        .eixoSigma = 11,
+        .minSpot = -0.25,
+        .maxSpot = 0.25,
         .minVola = 0.0,
         .maxVola = 0.5
     };
@@ -115,27 +115,32 @@ int main(){
     std::unordered_map<std::string, StressMatrixResult> groupedMatrices = portfolio.generateStressMatrix(config);
 
     for (const auto& pair : groupedMatrices) {
-        std::cout << "Heat map de P&L sob estresse (Volatilidade (eixo X)/ Spot (eixo Y)) [" << pair.first << "]: \n\n";
-        std::cout << std::setw(10) << " ";
+        std::cout << "Heat map de P&L sob estresse [" << pair.first << "]: \n\n";
+        
+        //diferentes linhas são spot e diferentes colunas são volatilidade
+        std::cout << std::setw(10) << " Spot \\ Vol";
 
         const auto& stressMatrix = pair.second;
         
-        // eixo superior (volatilidade)
+        //eixo volatilidade
         for (int i = 0; i < stressMatrix.vola.size(); ++i){
             std::cout << std::fixed << std::setprecision(2) << std::setw(10) << stressMatrix.vola[i] << " ";
         }
-        
         std::cout << "\n";
+        
+        //linha separadora horizontal
+        std::cout << std::string(11, '-') << "+" << std::string(stressMatrix.vola.size() * 11, '-') << "\n";
 
-        // eixo lateral (spot) cruzado com volatilidade
+        //eixo spot
         for (int i = 0; i < stressMatrix.spot.size(); ++i){
-            std::cout << std::fixed << std::setprecision(2) << std::setw(10) << stressMatrix.spot[i] << " ";
+            std::cout << std::fixed << std::setprecision(2) << std::setw(10) << stressMatrix.spot[i] << " |";
+            
             for (int j = 0; j < stressMatrix.vola.size(); ++j){
                 std::cout << std::fixed << std::setprecision(2) << std::setw(10) << stressMatrix.pnlValues[i][j] << " ";
             }
             std::cout << "\n";
         }
-        std::cout << "\n"; // Espaçamento extra entre matrizes de ativos diferentes
+        std::cout << "\n"; 
     }
 
     return 0;
